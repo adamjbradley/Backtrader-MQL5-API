@@ -65,12 +65,26 @@ class MTraderAPI:
     def __init__(self, *args, **kwargs):
 
         self.HOST = kwargs["host"]
-        self.SYS_PORT = 15555  # REP/REQ port
-        self.DATA_PORT = 15556  # PUSH/PULL port
-        self.LIVE_PORT = 15557  # PUSH/PULL port
-        self.EVENTS_PORT = 15558  # PUSH/PULL port
-        self.INDICATOR_DATA_PORT = 15559  # REP/REQ port
-        self.CHART_DATA_PORT = 15560  # PUSH port
+        self.SYS_PORT = (
+            15555 if not kwargs["SYS_PORT"] else kwargs["SYS_PORT"]
+        )  # REP/REQ port
+        self.DATA_PORT = (
+            15556 if not kwargs["DATA_PORT"] else kwargs["DATA_PORT"]
+        )  # PUSH/PULL port
+        self.LIVE_PORT = (
+            15557 if not kwargs["LIVE_PORT"] else kwargs["LIVE_PORT"]
+        )  # PUSH/PULL port
+        self.EVENTS_PORT = (
+            15558 if not kwargs["EVENTS_PORT"] else kwargs["EVENTS_PORT"]
+        )  # PUSH/PULL port
+        self.INDICATOR_DATA_PORT = (
+            15559
+            if not kwargs["INDICATOR_DATA_PORT"]
+            else kwargs["INDICATOR_DATA_PORT"]
+        )  # REP/REQ port
+        self.CHART_DATA_PORT = (
+            15560 if not kwargs["CHART_DATA_PORT"] else kwargs["CHART_DATA_PORT"]
+        )  # PUSH port
         self.debug = kwargs["debug"]
 
         # ZeroMQ timeout in seconds
@@ -97,11 +111,13 @@ class MTraderAPI:
             self.indicator_data_socket = context.socket(zmq.PULL)
             # set port timeout
             self.indicator_data_socket.RCVTIMEO = data_timeout * 1000
-            self.indicator_data_socket.connect("tcp://{}:{}".format(self.HOST, self.INDICATOR_DATA_PORT))
+            self.indicator_data_socket.connect(
+                f"tcp://{self.HOST}:{self.INDICATOR_DATA_PORT}"
+            )
             self.chart_data_socket = context.socket(zmq.PUSH)
             # set port timeout
             # TODO check if port is listening and error handling
-            self.chart_data_socket.connect("tcp://{}:{}".format(self.HOST, self.CHART_DATA_PORT))
+            self.chart_data_socket.connect(f"tcp://{self.HOST}:{self.CHART_DATA_PORT}")
 
         except zmq.ZMQError:
             raise zmq.ZMQBindError("Binding ports ERROR")
@@ -501,7 +517,7 @@ class MTraderStore(with_metaclass(MetaSingleton, object)):
         side = "buy" if order.isbuy() else "sell"
         order_type = self._ORDEREXECS.get((order.exectype, side), None)
         if order_type is None:
-            raise ValueError("Wrong order type: %s or side: %s" % (order.exectype, side))
+            raise ValueError(f"Wrong order type: {order.exectype} or side: {side}")
 
         okwargs["actionType"] = order_type
         okwargs["symbol"] = order.data._dataname
@@ -584,7 +600,7 @@ class MTraderStore(with_metaclass(MetaSingleton, object)):
             self._orders_type[oref] = okwargs["actionType"]
             # maps ids to backtrader order
             self._ordersrev[oid] = oref
-            self.order_tickets.append(o['order'])
+            self.order_tickets.append(o["order"])
 
     def order_cancel(self, order):
         self.q_orderclose.put(order.ref)
@@ -618,7 +634,9 @@ class MTraderStore(with_metaclass(MetaSingleton, object)):
             self._cancel_flag = True
             self.broker._cancel(oref)
 
-    def price_data(self, dataname, dtbegin, dtend, timeframe, compression, include_first=False):
+    def price_data(
+        self, dataname, dtbegin, dtend, timeframe, compression, include_first=False
+    ):
         # def price_data(
         #     self, dataname, dtbegin, dtend, timeframe, compression, include_first=False, correct_tick_history=False
         # ):
@@ -631,7 +649,7 @@ class MTraderStore(with_metaclass(MetaSingleton, object)):
             end = int((dtend - self._DTEPOCH).total_seconds())
 
         if self.debug:
-            print("Fetching: {}, Timeframe: {}, Fromdate: {}".format(dataname, tf, dtbegin))
+            print(f"Fetching: {dataname}, Timeframe: {tf}, Fromdate: {dtbegin}")
 
         data = self.oapi.construct_and_send(
             action="HISTORY",
@@ -702,7 +720,9 @@ class MTraderStore(with_metaclass(MetaSingleton, object)):
         if self.debug:
             print("Closing position: {}, on symbol: {}".format(oid, symbol))
 
-        conf = self.oapi.construct_and_send(action="TRADE", actionType="POSITION_CLOSE_ID", symbol=symbol, id=oid)
+        conf = self.oapi.construct_and_send(
+            action="TRADE", actionType="POSITION_CLOSE_ID", symbol=symbol, id=oid
+        )
         print(conf)
         # Error handling
         if conf["error"]:
@@ -712,7 +732,9 @@ class MTraderStore(with_metaclass(MetaSingleton, object)):
         if self.debug:
             print("Cancelling order: {}, on symbol: {}".format(oid, symbol))
 
-        conf = self.oapi.construct_and_send(action="TRADE", actionType="ORDER_CANCEL", symbol=symbol, id=oid)
+        conf = self.oapi.construct_and_send(
+            action="TRADE", actionType="ORDER_CANCEL", symbol=symbol, id=oid
+        )
         # Error handling
         if conf["error"]:
             raise ServerDataError(conf)
@@ -884,7 +906,9 @@ class MTraderStore(with_metaclass(MetaSingleton, object)):
     #         raise ChartError(ret_val["description"])
     #         self.put_notification(ret_val["description"])
 
-    def config_indicator(self, symbol, timeframe, compression, name, id, params, linecount):
+    def config_indicator(
+        self, symbol, timeframe, compression, name, id, params, linecount
+    ):
         """Instantiates an indicator in MT5"""
 
         tf = self.get_granularity(timeframe, compression)
@@ -985,7 +1009,9 @@ class MTraderStore(with_metaclass(MetaSingleton, object)):
         tf = self.get_granularity(timeframe, compression)
 
         if self.debug:
-            print("Request CSV write with Fetching: {}, Timeframe: {}, Fromdate: {}".format(symbol, tf, date_begin))
+            print(
+                f"Request CSV write with Fetching: {symbol}, Timeframe: {tf}, Fromdate: {date_begin}"
+            )
 
         ret_val = self.oapi.construct_and_send(
             action="HISTORY",
