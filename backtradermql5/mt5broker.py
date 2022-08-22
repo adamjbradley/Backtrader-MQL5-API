@@ -356,6 +356,9 @@ class MTraderBroker(with_metaclass(MetaMTraderBroker, BrokerBase)):
         order.addcomminfo(self.getcommissioninfo(data))
         return self._transmit(order)
 
+    def close_last_position(self, symbol):
+        self.o.close_position(self.o.order_tickets.pop(), symbol)
+
     def cancel(self, order):
         if not self.orders.get(order.ref, False):
             return

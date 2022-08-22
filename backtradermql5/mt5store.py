@@ -366,6 +366,8 @@ class MTraderStore(with_metaclass(MetaSingleton, object)):
         self._cash = 0.0
         self._value = 0.0
 
+        self.order_tickets = []
+
         self.q_livedata = queue.Queue()
 
         self._cancel_flag = False
@@ -582,6 +584,7 @@ class MTraderStore(with_metaclass(MetaSingleton, object)):
             self._orders_type[oref] = okwargs["actionType"]
             # maps ids to backtrader order
             self._ordersrev[oid] = oref
+            self.order_tickets.append(o['order'])
 
     def order_cancel(self, order):
         self.q_orderclose.put(order.ref)
