@@ -155,7 +155,7 @@ cerebro.run(stdstats=False)
 
 You can use any MT5 indicator directly from Backtrader via the `MTraderIndicator` class.
 
-```
+```python
     def __init__(self, store):
         self.mt5macd = getMTraderIndicator(
             # MTraderStorestore instance
@@ -183,7 +183,7 @@ This is an experimental feature and a work in progress! It WILL plot wrong data 
 
 You can open and draw directly to a chart in MT5 via the `MTraderChart` class.
 
-```
+```python
     def __init__(self, store):
         self.bb = btind.BollingerBands(self.data)
         chart = MTraderChart(self.datas[0], realtime=False)
