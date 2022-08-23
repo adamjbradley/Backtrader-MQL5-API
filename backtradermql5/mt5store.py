@@ -66,24 +66,26 @@ class MTraderAPI:
 
         self.HOST = kwargs["host"]
         self.SYS_PORT = (
-            15555 if not kwargs["SYS_PORT"] else kwargs["SYS_PORT"]
+            15555 if "SYS_PORT" not in kwargs.keys() else kwargs["SYS_PORT"]
         )  # REP/REQ port
         self.DATA_PORT = (
-            15556 if not kwargs["DATA_PORT"] else kwargs["DATA_PORT"]
+            15556 if "DATA_PORT" not in kwargs.keys() else kwargs["DATA_PORT"]
         )  # PUSH/PULL port
         self.LIVE_PORT = (
-            15557 if not kwargs["LIVE_PORT"] else kwargs["LIVE_PORT"]
+            15557 if "LIVE_PORT" not in kwargs.keys() else kwargs["LIVE_PORT"]
         )  # PUSH/PULL port
         self.EVENTS_PORT = (
-            15558 if not kwargs["EVENTS_PORT"] else kwargs["EVENTS_PORT"]
+            15558 if "EVENTS_PORT" not in kwargs.keys() else kwargs["EVENTS_PORT"]
         )  # PUSH/PULL port
         self.INDICATOR_DATA_PORT = (
             15559
-            if not kwargs["INDICATOR_DATA_PORT"]
+            if "INDICATOR_DATA_PORT" not in kwargs.keys()
             else kwargs["INDICATOR_DATA_PORT"]
         )  # REP/REQ port
         self.CHART_DATA_PORT = (
-            15560 if not kwargs["CHART_DATA_PORT"] else kwargs["CHART_DATA_PORT"]
+            15560
+            if "CHART_DATA_PORT" not in kwargs.keys()
+            else kwargs["CHART_DATA_PORT"]
         )  # PUSH port
         self.debug = kwargs["debug"]
 
