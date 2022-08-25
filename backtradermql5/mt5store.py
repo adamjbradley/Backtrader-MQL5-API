@@ -553,6 +553,9 @@ class MTraderStore(with_metaclass(MetaSingleton, object)):
         # set store backtrader order ref as MT5 order magic number
         okwargs["magic"] = order.ref
 
+        # okwargs["_order"] = order
+        okwargs['_order'] = order
+
         okwargs.update(**kwargs)  # anything from the user
         self.q_ordercreate.put(
             (
@@ -577,6 +580,8 @@ class MTraderStore(with_metaclass(MetaSingleton, object)):
                 break
 
             oref, okwargs = msg
+
+            order = okwargs.pop('_order')
 
             try:
                 o = self.oapi.construct_and_send(**okwargs)
@@ -603,6 +608,7 @@ class MTraderStore(with_metaclass(MetaSingleton, object)):
             # maps ids to backtrader order
             self._ordersrev[oid] = oref
             self.order_tickets.append(o["order"])
+            order.ticket_id = o['order']
 
     def order_cancel(self, order):
         self.q_orderclose.put(order.ref)
@@ -736,6 +742,19 @@ class MTraderStore(with_metaclass(MetaSingleton, object)):
 
         conf = self.oapi.construct_and_send(
             action="TRADE", actionType="POSITION_PARTIAL", symbol=symbol, id=oid, volume=volume
+        )
+        if self.debug:
+            print(conf)
+        # Error handling
+        if conf["error"]:
+            raise ServerDataError(conf)
+
+    def close_by_ticket_id(self, oid, symbol):
+        if self.debug:
+            print(f"Closing position: {oid}, on symbol: {symbol}")
+
+        conf = self.oapi.construct_and_send(
+            action="TRADE", actionType="POSITION_CLOSE_ID", symbol=symbol, id=oid
         )
         if self.debug:
             print(conf)
