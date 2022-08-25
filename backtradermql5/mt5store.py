@@ -729,6 +729,19 @@ class MTraderStore(with_metaclass(MetaSingleton, object)):
         # Error handling
         if conf["error"]:
             raise ServerDataError(conf)
+    
+    def close_partial(self, oid, symbol, volume):
+        if self.debug:
+            print(f"Closing Partial: {oid}, on symbol: {symbol}")
+
+        conf = self.oapi.construct_and_send(
+            action="TRADE", actionType="POSITION_PARTIAL", symbol=symbol, id=oid, volume=volume
+        )
+        if self.debug:
+            print(conf)
+        # Error handling
+        if conf["error"]:
+            raise ServerDataError(conf)
 
     def cancel_order(self, oid, symbol):
         if self.debug:

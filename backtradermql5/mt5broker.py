@@ -359,6 +359,9 @@ class MTraderBroker(with_metaclass(MetaMTraderBroker, BrokerBase)):
     def close_last_position(self, symbol):
         self.o.close_position(self.o.order_tickets.pop(), symbol)
 
+    def close_partial(self, symbol, size):
+        self.o.close_partial(self.o.order_tickets.pop(), symbol, volume=size)
+
     def cancel(self, order):
         if not self.orders.get(order.ref, False):
             return
